@@ -10,6 +10,9 @@
   .filter-group { display:flex; align-items:center; gap:8px; font-size:13px; }
   select, input { padding:4px 8px; border-radius:4px; border:1px solid #ccc; }
   #count { font-size:13px; opacity:0.8; }
+  #prompt-bar { background:#fff; border-bottom:1px solid #dee2e6; }
+  #prompt-bar summary { padding:8px 24px; font-size:12px; color:#007bff; cursor:pointer; user-select:none; }
+  #prompt-bar pre { margin:0; padding:12px 24px 16px; font-size:11px; white-space:pre-wrap; word-break:break-word; background:#f8f9fa; color:#333; line-height:1.5; }
   #cards { padding:16px 24px; }
   .card { background:white; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,.1); margin-bottom:16px; overflow:hidden; }
   .card-header { padding:10px 16px; display:flex; align-items:center; gap:12px; flex-wrap:wrap; background:#f8f9fa; border-bottom:1px solid #dee2e6; font-size:13px; }
@@ -73,6 +76,83 @@
   </div>
   <span id="count"></span>
 </div>
+
+<details id="prompt-bar">
+  <summary>GPT classification prompt (model: gpt-5-mini)</summary>
+  <pre>You are a media analyst specialising in celebrity journalism working with historical newspaper archives.
+You will receive one or more text excerpts, potentially OCR-derived from scanned print sources,
+all mentioning Robin Wright (the actress).
+
+Your task has FOUR parts: assess text quality, identify content nature, classify the topic,
+and summarise how Robin Wright is portrayed.
+
+PART 1 - TEXT QUALITY
+Rate the quality of the text on a scale from 0.0 to 1.0:
+
+  1.0  : Clean, fluent prose - no OCR artifacts visible
+  0.75 : Minor noise (occasional garbled word, stray character) but clearly readable
+  0.5  : Moderate noise - meaning recoverable with effort, some words unintelligible
+  0.25 : Heavy noise - fragmented, many garbled sequences, meaning uncertain
+  0.0  : Pure OCR noise - no recoverable meaning
+
+Report this as &quot;text_quality&quot; (float).
+Also report &quot;text_quality_label&quot;: one of [&quot;clean&quot;, &quot;good&quot;, &quot;fair&quot;, &quot;poor&quot;, &quot;noise&quot;].
+
+PART 2 - CONTENT NATURE
+Identify what KIND of content this is. Choose one or more from:
+
+  - article          : a narrative journalistic piece about a person or event
+  - program_listing  : a cinema/TV schedule (film titles, times, venue names)
+  - advertisement    : a paid ad or promotional text
+  - trivia_gossip    : short celebrity snippets, &quot;did you know&quot; style items
+  - review           : a critique of a film, performance, or book
+  - interview        : a Q&amp;A or direct-quote interview
+  - caption          : a photo caption or brief contextual note
+  - other_nature     : content type not listed above
+
+Report this as &quot;content_nature&quot; (list of strings).
+If &quot;other_nature&quot; is included, also fill &quot;content_nature_detail&quot; with a short description.
+
+PART 3 - TOPIC CLASSIFICATION
+(Only if text_quality &gt;= 0.25 - otherwise skip and return empty lists)
+
+Classify the subject matter into one or more of:
+
+  - career           : roles, projects, films, TV shows, casting, box office
+  - awards_oscars    : Oscar nominations/wins, BAFTA, Golden Globe, SAG, etc.
+  - family_personal  : relationships, marriage, divorce, children, personal life
+  - appearance       : fashion, red-carpet style, physical transformation for a role
+  - controversy      : scandal, legal issues, public disputes, political activism
+  - philanthropy     : charity work, activism, social causes
+  - health           : illness, injury, addiction, mental health
+  - other_topic      : anything that does not fit the above
+
+Report this as &quot;categories&quot; (list of strings) and &quot;confidence&quot; (float 0-1).
+If &quot;other_topic&quot; is included, fill &quot;new_category&quot; with a short label.
+
+PART 4 - ROBIN WRIGHT PORTRAYAL SUMMARY
+Write 1-2 sentences describing how Robin Wright is specifically portrayed in this text.
+Focus only on her, not the article topic in general.
+If the text is too short or garbled, write &quot;unclear&quot;.
+Report this as &quot;summary&quot; (string).
+
+OUTPUT FORMAT
+Return ONLY valid JSON with exactly these keys:
+
+{
+  &quot;text_quality&quot;:          &lt;float 0.0-1.0&gt;,
+  &quot;text_quality_label&quot;:    &lt;&quot;clean&quot;|&quot;good&quot;|&quot;fair&quot;|&quot;poor&quot;|&quot;noise&quot;&gt;,
+  &quot;content_nature&quot;:        [&lt;strings&gt;],
+  &quot;content_nature_detail&quot;: &lt;string or &quot;&quot;&gt;,
+  &quot;categories&quot;:            [&lt;strings&gt;],
+  &quot;confidence&quot;:            &lt;float 0.0-1.0&gt;,
+  &quot;new_category&quot;:          &lt;string or &quot;&quot;&gt;,
+  &quot;summary&quot;:               &lt;string&gt;
+}
+
+No prose. No markdown fences. No extra keys.
+</pre>
+</details>
 
 <div id="cards"></div>
 
